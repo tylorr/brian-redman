@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Briana's Birthday Adventure</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.5s;
+    }
+    .container {
+      padding: 20px;
+      max-width: 600px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    .choice-button {
+      display: block;
+      font-size: 1.2rem;
+      margin: 10px auto;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 10px;
+      background-color: #ececec;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .choice-button:hover {
+      background-color: #ddd;
+    }
+    .image-container {
+      margin: 20px 0;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+    .compliment-floater {
+      position: absolute;
+      /* background-color: black; */
+      padding: 3%;
+      font-size: 2rem;
+      cursor: pointer;
+      animation: float 40s linear infinite, wiggle 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%   { top: 10%; left: 10%; }
+      25%  { top: 20%; left: 80%; }
+      50%  { top: 70%; left: 60%; }
+      75%  { top: 60%; left: 20%; }
+      100% { top: 10%; left: 10%; }
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(10deg); }
+      50% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+    }
+    .compliment-box {
+      display: none;
+      background-color: #fff4c4;
+      border: 1px solid #f0d98a;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body id="page-body">
+  <div class="container">
+    <h1 id="prompt-text">It's your birthday, Briana. Where shall we begin?</h1>
+
+    <div class="image-container" id="image-container">
+      <!-- Image will go here if available -->
+    </div>
+
+    <button class="choice-button" onclick="nextPage('beach')">🌴 Let's hit the beach</button>
+    <button class="choice-button" onclick="nextPage('festival')">🎶 Let's go to a festival</button>
+    <button class="choice-button" onclick="nextPage('run')">🏃‍♀️ Let's go for a run</button>
+
+    <!-- <div class="compliment-floater" onclick="toggleCompliment('comp1')">💬</div>
+    <div class="compliment-box" id="comp1">You bring light and warmth wherever you go.</div> -->
+  </div>
+
+  <!--
+  
+  Beach
+    scuba
+      so proud and impressed, love the adventure
+    catch some rays
+      apply sunscreen
+      wait until we get to the beach
+        read
+        nap
+        follow tylor into water
+          read
+          nap
+          follow tylor into water
+            uh oh sunburn 
+    sunset
+      Coconut
+      Acai bowl
+      Ice cream
+        dinner at the water
+          fish
+          fish
+          fish
+          shrimp
+        rest on the beach
+          snuggle with tylor
+          steal tylor's jacket
+            watch a beautiful moment with the most beautiful woman
+
+  Run
+    5k
+      7k why not
+        10k sounds great
+          Funeral for Tylor
+    Hill sprints
+      Funeral for Tylor
+    Explore something new
+      Left
+      Right
+  
+  -->
+
+  <script>
+    const pages = {
+      beach: {
+        prompt: "We made it to the beach. What do we do first?",
+        image: "images/beach.jpg",
+        // background: "#d0f0ff",
+        choices: [
+          { text: "🌊 Go scuba diving", action: "scuba" },
+          { text: "🏖️ Chill on the sand", action: "chill-step-1" },
+          { text: "🏃‍♀️ Catch the sunset", action: "sunset" },
+        ],
+        compliment: "You’re the kind of beautiful the ocean writes songs about."
+      },
+      "chill-step-1": {
+        prompt: "We're all packed up and ready for a full day at the beach, do you want to apply sunscreen?",
+        image: "images/beach.jpg",
+        choices: [
+          { text: "Apply sunscreen now", action: "chill-step-2", updateState: (state) => ({...state, sunscreen: true }) },
+          { text: "Wait until we get to the beach", action: "chill-step-2" },
+        ]
+      },
+      "chill-step-2": {
+        prompt: "It's a perfect day for the beach, sunny blue skies and calm waters. Tylor heads straight for the water, what would you like to do first?",
+        image: "images/beach.jpg",
+        choices: [
+          { filter: state => !state.sunscreen, text: "Apply sunscreen", action: "chill-step-3", updateState: (state) => ({...state, sunscreen: true }) },
+          { text: "Nap", action: "chill-step-3", updateState: (state) => ({...state, nap: true }) },
+          { text: "Read", action: "chill-step-3" },
+          { text: "Join Tylor in the water", action: "swim" },
+        ]
+      },
+      "chill-step-3": {
+        prompt: "Tylor looks like he's having fun out in the water, what do you do next?",
+        image: "images/beach.jpg",
+        choices: [
+          { filter: state => (!state.sunscreen && !state.nap), text: "Apply sunscreen", action: "chill-step-3", updateState: (state) => ({...state, sunscreen: true }) },
+          { filter: state => state.nap, text: "Keep napping", action: state => state.sunscreen ? "wake-with-tylor" : "forgot-sunscreen", updateState: (state) => ({...state, nap: true }) },
+          { text: "Join Tylor in the water", action: "swim" },
+        ]
+      },
+      "wake-with-tylor": {
+        prompt: 'You wake to Tylor giving you a kiss on the cheek. "I love you so much" he says with joy in his eyes, a blend of his time in the water and finding you enjoying your time baking in the sun.\n\nThe two of your share earbuds listening to your favorite songs ❤️🎵',
+        image: "images/beach.jpg",
+        music: "music/thats_where_i_am.mp3",
+        choices: [
+          { text: "Start Over", action: () => location.reload() },
+        ]
+      },
+      "forgot-sunscreen": {
+        prompt: 'You wake to Tylor giving you a kiss on the cheek. "I love you so much" he says with joy in his eyes, a blend of his time in the water and finding you enjoying your time baking in the sun.\n\nThe two of your share earbuds listening to your favorite songs ❤️🎵',
+        image: "images/beach.jpg",
+        music: "music/thats_where_i_am.mp3",
+        choices: [
+          { text: "Start Over", action: () => location.reload() },
+        ]
+      }
+      // Add more pages here following the same format
+    };
+
+    var state = {};
+
+    function nextPage(key) {
+      const page = pages[key];
+      if (!page) return;
+
+      document.getElementById("prompt-text").innerText = page.prompt;
+
+      // Update image
+      const imgContainer = document.getElementById("image-container");
+      imgContainer.innerHTML = page.image ? `<img src="${page.image}" alt="Scene image">` : "";
+
+      // Update buttons
+      const container = document.querySelector(".container");
+      const oldButtons = container.querySelectorAll(".choice-button");
+      oldButtons.forEach(btn => btn.remove());
+
+      if (page.music) {
+        new Audio(page.music).play()
+      }
+
+
+      page.choices.forEach(choice => {
+        if (choice.filter && !choice.filter(state)) {
+          return;
+        }
+
+        const btn = document.createElement("button");
+        btn.className = "choice-button";
+        btn.innerText = choice.text;
+        btn.onclick = () => {
+          if (choice.updateState) {
+            state = choice.updateState(state);
+          }
+
+          if (typeof choice.action === 'function') {
+            nextPage(choice.action(state));
+          } else {
+            nextPage(choice.action); 
+          }
+
+        }
+        container.appendChild(btn);
+      });
+
+      // Update compliment
+      // const compBox = document.getElementById("comp1");
+      // compBox.innerText = page.compliment;
+      // compBox.style.display = "none";
+
+      // Update background color
+      if (page.background) {
+        document.getElementById("page-body").style.backgroundColor = page.background;
+      }
+    }
+
+    function toggleCompliment(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === "none" ? "block" : "none";
+    }
+  </script>
+</body>
+</html>
