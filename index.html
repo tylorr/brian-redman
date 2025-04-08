@@ -17,6 +17,16 @@
       overflow: hidden;
       transition: background-color 0.5s;
     }
+    #background-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+      display: none;
+    }
     .container {
       padding: 20px;
       max-width: 600px;
@@ -25,6 +35,9 @@
     h1 {
       font-size: 1.8rem;
       margin-bottom: 1rem;
+      background-color: white;
+      border-radius: 5px;
+      padding: 0.5em;
     }
     .choice-button {
       display: block;
@@ -76,9 +89,21 @@
       padding: 10px;
       margin: 10px 0;
     }
+    .progress {
+      display: none;
+      /* background-color: #fff4c4; */
+      /* border: 1px solid #f0d98a; */
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body id="page-body">
+  <video id="background-video" autoplay muted loop playsinline></video>
+  <audio id="background-music" loop></audio>
+
   <div class="container">
     <h1 id="prompt-text">It's your birthday, Briana. Where shall we begin?</h1>
 
@@ -88,7 +113,9 @@
 
     <button class="choice-button" onclick="nextPage('beach')">🌴 Let's hit the beach</button>
     <button class="choice-button" onclick="nextPage('festival')">🎶 Let's go to a festival</button>
-    <button class="choice-button" onclick="nextPage('run')">🏃‍♀️ Let's go for a run</button>
+    <!-- <button class="choice-button" onclick="nextPage('run')">🏃‍♀️ Let's go for a run</button> -->
+
+    <div class="progress" id="progress"></div>
 
     <!-- <div class="compliment-floater" onclick="toggleCompliment('comp1')">💬</div>
     <div class="compliment-box" id="comp1">You bring light and warmth wherever you go.</div> -->
@@ -123,35 +150,47 @@
           steal tylor's jacket
             watch a beautiful moment with the most beautiful woman
 
-  Run
-    5k
-      7k why not
-        10k sounds great
-          Funeral for Tylor
-    Hill sprints
-      Funeral for Tylor
-    Explore something new
-      Left
-      Right
-  
+  festival
+    meet new friends
+    take drugs
+      make out
+        so hot, so beautiful
+    dance all night
   -->
 
   <script>
+    const defaultProgress = {
+      "wake-with-tylor": false,
+      "sunburn": false,
+      "wave-crash-dream": false,
+      "wave-crash-real": false,
+      "dive-under": false,
+      "scuba": false,
+    }
+
+
+    let progress = {...defaultProgress, ...JSON.parse(localStorage.getItem("progress"))};
+
+    function saveProgress(key) {
+      progress[key] = true;
+      localStorage.setItem("progress", JSON.stringify(progress));
+    }
+
     const pages = {
       beach: {
         prompt: "We made it to the beach. What do we do first?",
-        image: "images/beach.jpg",
+        // image: "images/beach.jpg",
         // background: "#d0f0ff",
         choices: [
           { text: "🌊 Go scuba diving", action: "scuba" },
           { text: "🏖️ Chill on the sand", action: "chill-step-1" },
-          { text: "🏃‍♀️ Catch the sunset", action: "sunset" },
+          // { text: "🏃‍♀️ Catch the sunset", action: "sunset" },
         ],
         compliment: "You’re the kind of beautiful the ocean writes songs about."
       },
       "chill-step-1": {
         prompt: "We're all packed up and ready for a full day at the beach, do you want to apply sunscreen?",
-        image: "images/beach.jpg",
+        // image: "images/beach.jpg",
         choices: [
           { text: "Apply sunscreen now", action: "chill-step-2", updateState: (state) => ({...state, sunscreen: true }) },
           { text: "Wait until we get to the beach", action: "chill-step-2" },
@@ -159,7 +198,7 @@
       },
       "chill-step-2": {
         prompt: "It's a perfect day for the beach, sunny blue skies and calm waters. Tylor heads straight for the water, what would you like to do first?",
-        image: "images/beach.jpg",
+        // image: "images/beach.jpg",
         choices: [
           { filter: state => !state.sunscreen, text: "Apply sunscreen", action: "chill-step-3", updateState: (state) => ({...state, sunscreen: true }) },
           { text: "Nap", action: "chill-step-3", updateState: (state) => ({...state, nap: true }) },
@@ -169,35 +208,136 @@
       },
       "chill-step-3": {
         prompt: "Tylor looks like he's having fun out in the water, what do you do next?",
-        image: "images/beach.jpg",
+        // image: "images/beach.jpg",
         choices: [
           { filter: state => (!state.sunscreen && !state.nap), text: "Apply sunscreen", action: "chill-step-3", updateState: (state) => ({...state, sunscreen: true }) },
-          { filter: state => state.nap, text: "Keep napping", action: state => state.sunscreen ? "wake-with-tylor" : "forgot-sunscreen", updateState: (state) => ({...state, nap: true }) },
+          { filter: state => state.nap, text: "Keep napping", action: state => state.sunscreen ? "wake-with-tylor" : "sunburn", updateState: (state) => ({...state, nap: true }) },
           { text: "Join Tylor in the water", action: "swim" },
         ]
       },
       "wake-with-tylor": {
         prompt: 'You wake to Tylor giving you a kiss on the cheek. "I love you so much" he says with joy in his eyes, a blend of his time in the water and finding you enjoying your time baking in the sun.\n\nThe two of your share earbuds listening to your favorite songs ❤️🎵',
-        image: "images/beach.jpg",
+        // image: "images/beach.jpg",
         music: "music/thats_where_i_am.mp3",
         choices: [
-          { text: "Start Over", action: () => location.reload() },
+          {
+            text: "Start Over", action: () => {
+              saveProgress("wake-with-tylor")
+              location.reload();
+            }
+          },
         ]
       },
-      "forgot-sunscreen": {
-        prompt: 'You wake to Tylor giving you a kiss on the cheek. "I love you so much" he says with joy in his eyes, a blend of his time in the water and finding you enjoying your time baking in the sun.\n\nThe two of your share earbuds listening to your favorite songs ❤️🎵',
-        image: "images/beach.jpg",
-        music: "music/thats_where_i_am.mp3",
+      "sunburn": {
+        prompt: "Uh oh, how long have you been napping? You never put on sunscreen and you're burnt to a crisp 🍅\n\nTylor's never going to let you live this down.",
+        // image: "images/beach.jpg",
+        background: "red",
         choices: [
-          { text: "Start Over", action: () => location.reload() },
+        {
+            text: "Start Over", action: () => {
+              saveProgress("sunburn")
+              location.reload();
+            }
+          },
         ]
+      },
+      "swim": {
+        prompt: "You head for the water, gingerly inching forward as you acclimate to the cool water. Tylor beams once he sees you coming 😍",
+        // image: "images/beach.jpg",
+        choices: [
+          { text: "Give tylor a bug hug and a kiss", action: state => state.nap ? "wave-dream" : "wave" },
+          { text: "Jump into his arms for a princess carry", action: state => state.nap ? "wave-dream" : "wave" },
+        ]
+      },
+      "wave": {
+        prompt: "You stare into each other eyes sharing big smiles and big love.\n\nBut neither of you are watching the water and big wave is coming your way, what do you do?",
+        // image: "images/beach.jpg",
+        choices: [
+          { text: "Scream and panic!", action: "topple" },
+          { text: "Dive under the wave the way your taught", action: "dive-under" },
+        ]
+      },
+      "wave-dream": {
+        prompt: "You stare into each other eyes sharing big smiles and big love.\n\nBut neither of you are watching the water and a giant scary rouge wave is coming your way, what do you do?",
+        // image: "images/beach.jpg",
+        choices: [
+          { text: "Scream and panic!", action: "topple-dream" },
+          { text: "Dive under the wave the way your taught", action: "topple-dream" },
+        ]
+      },
+      "topple": {
+        prompt: "You take a wave to the face and get knocked down but you quickly recover. You resolve to never go in the water ever again.\n\nTylor is sad 😭",
+        // image: "images/beach.jpg",
+        choices: [
+        {
+            text: "Start Over", action: () => {
+              saveProgress("wave-crash-real")
+              location.reload();
+            }
+          },
+        ]
+      },
+      "dive-under": {
+        prompt: "You expertly dive under the wave, it's as if the wave wasn't even there. You're so proud of yourself and so is Tylor. He swims over and gives you a big kiss 😘\n\n\"You're ability to do the scary thing and work on yourself impresses me every day!\"",
+        // image: "images/beach.jpg",
+        choices: [
+        {
+            text: "Start Over", action: () => {
+              saveProgress("dive-under")
+              location.reload();
+            }
+          },
+        ]
+      },
+      "topple-dream": {
+        prompt: "The wave is too big and you get pulled under, spinning over and over. You can't tell which way is up and you're running out of air 😮‍💨",
+        // image: "images/beach.jpg",
+        choices: [
+          { text: "Gasp for air", action: "topple-wake" },
+        ]
+      },
+      "topple-wake": {
+        prompt: "You wake from your dream with a scream. Tylor hears you and rushes over. When he arrives you tell him you're never going in the water ever again.\n\nHe looks very confused 😕",
+        // image: "images/beach.jpg",
+        choices: [
+        {
+            text: "Start Over", action: () => {
+              saveProgress("wave-crash-dream")
+              location.reload();
+            }
+          },
+        ]
+      },
+      "scuba": {
+        prompt: '"I am so proud and so incredibly impressed how you decided to take on something that gives you such fear and anxiety and you totally killed it like a bad ass bitch. Such an inspiration and source of the most amazing memories" - Tylor',
+        // image: "images/beach.jpg",
+        video: "video/manta_rays.mp4",
+        choices: [
+        {
+            text: "Start Over", action: () => {
+              saveProgress("scuba")
+              location.reload();
+            }
+          },
+        ]
+      },
+      "festival": {
+        
       }
-      // Add more pages here following the same format
     };
 
-    var state = {};
+    let state = {};
+    let audio = null;
+
+    updateProgress();
 
     function nextPage(key) {
+
+      const progressEl = document.getElementById("progress");
+      if (progressEl) {
+        progressEl.remove();
+      }
+
       const page = pages[key];
       if (!page) return;
 
@@ -205,17 +345,18 @@
 
       // Update image
       const imgContainer = document.getElementById("image-container");
-      imgContainer.innerHTML = page.image ? `<img src="${page.image}" alt="Scene image">` : "";
+      imgContainer.innerHTML = page.image ? `<img src="${page.image}" alt="">` : "";
 
       // Update buttons
       const container = document.querySelector(".container");
       const oldButtons = container.querySelectorAll(".choice-button");
       oldButtons.forEach(btn => btn.remove());
 
-      if (page.music) {
-        new Audio(page.music).play()
-      }
-
+      // if (page.music) {
+      //   const audio = new Audio(page.music);
+      //   audio.volume = 0.25;
+      //   audio.play()
+      // }
 
       page.choices.forEach(choice => {
         if (choice.filter && !choice.filter(state)) {
@@ -249,6 +390,43 @@
       if (page.background) {
         document.getElementById("page-body").style.backgroundColor = page.background;
       }
+
+      // Update background video
+      const bgVideo = document.getElementById("background-video");
+      if (page.video) {
+        bgVideo.src = page.video;
+        bgVideo.style.display = 'block';
+      } else {
+        bgVideo.removeAttribute('src');
+        bgVideo.style.display = 'none';
+      }
+
+      // Update background music
+      const bgMusic = document.getElementById("background-music");
+      if (page.music) {
+        bgMusic.src = page.music;
+        bgMusic.volume = 0.25;
+        bgMusic.play().catch(e => console.warn("Autoplay failed: ", e));
+      } else {
+        bgMusic.pause();
+        bgMusic.removeAttribute('src');
+      }
+    }
+
+    function updateProgress() {
+      const el = document.getElementById("progress");
+
+      let total = 0;
+      let finished = 0;
+      for (const [key, value] of Object.entries(progress)) {
+        total++;
+        if (value) {
+          finished++;
+        }
+      }
+
+      el.innerText = `Progress: ${finished}/${total}`;
+      el.style.display = finished > 0 ? "block" : "none";
     }
 
     function toggleCompliment(id) {
