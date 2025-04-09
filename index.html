@@ -161,7 +161,7 @@
         prompt: "It's a perfect day for the beach, sunny blue skies and calm waters. Tylor heads straight for the water, what would you like to do first?",
         image: "images/hot_at_beach.jpg",
         choices: [
-          { filter: state => !state.sunscreen, text: "Apply sunscreen", action: "chill-step-3", updateState: (state) => ({...state, sunscreen: true }) },
+          { filter: state => !state.sunscreen, text: "🧴 Apply sunscreen", action: "chill-step-3", updateState: (state) => ({...state, sunscreen: true }) },
           { text: "😴 Nap", action: "chill-step-3", updateState: (state) => ({...state, nap: true }) },
           { text: "📖 Read", action: "chill-step-3" },
           { text: "🏊 Join Tylor in the water", action: "swim" },
